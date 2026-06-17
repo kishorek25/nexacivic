@@ -29,7 +29,7 @@ const { sendWelcomeEmail, sendComplaintEmail, sendStatusUpdateEmail, sendOTPEmai
 
 // Multer with memory storage for AI image analysis
 const multer = require("multer");
-const uploadMemory = multer({ 
+const uploadMemory = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max
     fileFilter: (req, file, cb) => {
@@ -85,17 +85,17 @@ function calculateBadges(points) {
     const earned = [];
     const thresholds = Object.entries(BADGES_CONFIG)
         .sort((a, b) => b[1].threshold - a[1].threshold);
-    
+
     for (const [key, badge] of thresholds) {
         if (points >= badge.threshold) {
             earned.push(badge.name);
             break;
         }
     }
-    
+
     if (points >= 50) earned.push('Active User');
     else if (points >= 1) earned.push('Beginner');
-    
+
     return [...new Set(earned)];
 }
 
@@ -114,7 +114,7 @@ function getNextBadgeProgress(points) {
         { threshold: 200, name: 'Top Contributor', icon: '🏆' },
         { threshold: 500, name: 'Champion', icon: '👑' }
     ];
-    
+
     for (const badge of thresholds) {
         if (points < badge.threshold) {
             return {
@@ -132,29 +132,29 @@ app.post("/api/points/add", verifyToken, async (req, res) => {
     try {
         const { action } = req.body;
         const userId = req.user.id;
-        
+
         if (!action || !POINTS_CONFIG.hasOwnProperty(action)) {
             return res.status(400).json({ error: "Invalid action type" });
         }
-        
+
         const pointsToAdd = POINTS_CONFIG[action];
         const user = await User.findById(userId);
-        
+
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
-        
+
         const previousPoints = user.points || 0;
         user.points = previousPoints + pointsToAdd;
-        
+
         const newBadges = calculateBadges(user.points);
         const previousBadges = user.badges || [];
-        
+
         const newBadgeEarned = newBadges.find(b => !previousBadges.includes(b));
-        
+
         user.badges = newBadges;
         await user.save();
-        
+
         res.json({
             success: true,
             pointsAdded: pointsToAdd,
@@ -174,18 +174,18 @@ app.get("/api/points/me", verifyToken, async (req, res) => {
     try {
         console.log("⭐ Fetching user points for:", req.user.id);
         const user = await User.findById(req.user.id);
-        
+
         if (!user) {
             console.log("❌ User not found");
             return res.status(404).json({ error: "User not found" });
         }
-        
+
         console.log("⭐ User found, points:", user.points, "badges:", user.badges);
-        
+
         const userComplaints = await Complaint.find({ userId: user._id });
         const complaintsCreated = userComplaints.length;
         const complaintsResolved = userComplaints.filter(c => c.status === 'Resolved').length;
-        
+
         res.json({
             points: user.points || 0,
             badges: user.badges || [],
@@ -207,14 +207,14 @@ app.get("/api/leaderboard", async (req, res) => {
     try {
         console.log("📊 Fetching leaderboard...");
         const { limit = 10 } = req.query;
-        
+
         const users = await User.find({ role: 'user' })
             .select('name points badges')
             .sort({ points: -1 })
             .limit(parseInt(limit));
-        
+
         console.log(`📊 Found ${users.length} users for leaderboard`);
-        
+
         const leaderboard = users.map((user, index) => ({
             rank: index + 1,
             userId: user._id,
@@ -223,7 +223,7 @@ app.get("/api/leaderboard", async (req, res) => {
             badge: getUserBadge(user.points || 0),
             isTopThree: index < 3
         }));
-        
+
         res.json(leaderboard);
     } catch (err) {
         console.error("❌ Error fetching leaderboard:", err);
@@ -232,7 +232,10 @@ app.get("/api/leaderboard", async (req, res) => {
 });
 
 // connect MongoDB
-mongoose.connect("mongodb://127.0.0.1:27017/nexacivic")
+console.log("MONGO_URI exists:", !!process.env.MONGO_URI);
+console.log("MONGO_URI:", process.env.MONGO_URI);
+
+mongoose.connect(process.env.MONGO_URI)
     .then(async () => {
         console.log("✅ MongoDB Connected");
 
@@ -586,7 +589,7 @@ async function processVoiceTranscript(transcript) {
 
     try {
         console.log("🔊 Processing transcript:", transcript.substring(0, 100));
-        
+
         const response = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages: [
@@ -612,13 +615,13 @@ Return ONLY the JSON, nothing else.`
 
         const content = response.choices[0].message.content.trim();
         console.log("🔊 AI Raw Response:", content);
-        
+
         // Try to parse JSON, remove markdown if present
         let cleanContent = content;
         if (content.includes('```')) {
             cleanContent = content.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
         }
-        
+
         const result = JSON.parse(cleanContent);
         return result;
     } catch (err) {
@@ -653,7 +656,7 @@ function createFallbackExtraction(transcript) {
     const words = transcript.trim().split(/\s+/);
     const title = words.slice(0, 6).join(' ');
     const location = extractLocationFromText(transcript);
-    
+
     return {
         title: title,
         description: transcript,
@@ -671,7 +674,7 @@ function extractLocationFromText(text) {
         /in\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/,
         /,\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s+(?:area|road|street)/i
     ];
-    
+
     for (const pattern of locationPatterns) {
         const match = text.match(pattern);
         if (match && match[1]) {
@@ -685,7 +688,7 @@ function extractLocationFromText(text) {
 app.post("/api/voice/process-transcript", verifyToken, async (req, res) => {
     try {
         const { transcript } = req.body;
-        
+
         if (!transcript) {
             return res.status(400).json({ error: "Transcript is required." });
         }
@@ -697,7 +700,7 @@ app.post("/api/voice/process-transcript", verifyToken, async (req, res) => {
 
         console.log("🔊 Processing voice transcript for user:", req.user.id);
         console.log("🔊 Original transcript:", cleanTranscript);
-        
+
         // Try AI processing first
         let aiResult = null;
         try {
@@ -707,7 +710,7 @@ app.post("/api/voice/process-transcript", verifyToken, async (req, res) => {
         }
 
         let extractedData;
-        
+
         if (aiResult && aiResult.title) {
             // AI succeeded
             extractedData = {
@@ -745,17 +748,17 @@ app.post("/api/voice/process-transcript", verifyToken, async (req, res) => {
 app.post("/api/ai/parse-complaint", verifyToken, async (req, res) => {
     try {
         const { text } = req.body;
-        
+
         if (!text || text.trim().length < 5) {
             return res.status(400).json({ error: "Text is required and must be at least 5 characters." });
         }
 
         const cleanText = text.trim();
         console.log("🤖 Parsing complaint text:", cleanText.substring(0, 100));
-        
+
         // Try AI parsing
         let aiResult = null;
-        
+
         if (process.env.OPENAI_API_KEY) {
             try {
                 const response = await openai.chat.completions.create({
@@ -818,7 +821,7 @@ JSON: {"title":"headline","description":"details","category":"Road/Garbage/Water
 app.post("/api/upload-analyze", verifyToken, uploadMemory.single("image"), async (req, res) => {
     try {
         console.log("📤 Upload request received for AI analysis");
-        
+
         if (!req.file) {
             return res.status(400).json({ error: "No image file uploaded" });
         }
@@ -909,7 +912,7 @@ app.post("/api/upload-analyze", verifyToken, uploadMemory.single("image"), async
 async function getZoneFromLocation(lat, lng, locationText) {
     try {
         const zones = await Zone.find({ isActive: true });
-        
+
         if (!zones || zones.length === 0) {
             return null;
         }
@@ -1454,36 +1457,36 @@ app.get("/api/complaints/:id/receipt", verifyToken, async (req, res) => {
 
         // Header
         doc.fillColor('#4f46e5')
-           .fontSize(24)
-           .font('Helvetica-Bold')
-           .text('NexaCivic', { align: 'center' });
-        
+            .fontSize(24)
+            .font('Helvetica-Bold')
+            .text('NexaCivic', { align: 'center' });
+
         doc.moveDown(0.3);
         doc.fillColor('#1f2937')
-           .fontSize(16)
-           .font('Helvetica-Bold')
-           .text('Complaint Receipt', { align: 'center' });
+            .fontSize(16)
+            .font('Helvetica-Bold')
+            .text('Complaint Receipt', { align: 'center' });
 
         doc.moveDown(0.5);
         doc.strokeColor('#4f46e5')
-           .lineWidth(2)
-           .moveTo(50, doc.y)
-           .lineTo(550, doc.y)
-           .stroke();
+            .lineWidth(2)
+            .moveTo(50, doc.y)
+            .lineTo(550, doc.y)
+            .stroke();
 
         doc.moveDown(1);
 
         // Helper function to add field
         const addField = (label, value, yPos) => {
             doc.fillColor('#6b7280')
-               .fontSize(10)
-               .font('Helvetica-Bold')
-               .text(label, 50, yPos);
-            
+                .fontSize(10)
+                .font('Helvetica-Bold')
+                .text(label, 50, yPos);
+
             doc.fillColor('#1f2937')
-               .fontSize(12)
-               .font('Helvetica')
-               .text(value || 'N/A', 150, yPos);
+                .fontSize(12)
+                .font('Helvetica')
+                .text(value || 'N/A', 150, yPos);
         };
 
         let currentY = doc.y;
@@ -1532,10 +1535,10 @@ app.get("/api/complaints/:id/receipt", verifyToken, async (req, res) => {
         currentY = doc.y;
 
         doc.fillColor('#4f46e5')
-           .fontSize(12)
-           .font('Helvetica-Bold')
-           .text('Reporter Information', 50, currentY);
-        
+            .fontSize(12)
+            .font('Helvetica-Bold')
+            .text('Reporter Information', 50, currentY);
+
         currentY += 20;
 
         if (complaint.userId) {
@@ -1549,35 +1552,35 @@ app.get("/api/complaints/:id/receipt", verifyToken, async (req, res) => {
             }
         } else {
             doc.fillColor('#1f2937')
-               .fontSize(12)
-               .text('Anonymous Submission', 150, currentY);
+                .fontSize(12)
+                .text('Anonymous Submission', 150, currentY);
         }
 
         // Footer
         doc.moveDown(2);
         doc.strokeColor('#e5e7eb')
-           .lineWidth(1)
-           .moveTo(50, doc.y)
-           .lineTo(550, doc.y)
-           .stroke();
+            .lineWidth(1)
+            .moveTo(50, doc.y)
+            .lineTo(550, doc.y)
+            .stroke();
 
         doc.moveDown(0.5);
         doc.fillColor('#9ca3af')
-           .fontSize(9)
-           .font('Helvetica')
-           .text('This is a system-generated receipt from NexaCivic Civic Issue Reporting System.', { align: 'center' });
-        
+            .fontSize(9)
+            .font('Helvetica')
+            .text('This is a system-generated receipt from NexaCivic Civic Issue Reporting System.', { align: 'center' });
+
         doc.moveDown(0.3);
         doc.text('Please keep this receipt for your records. You can track your complaint status online.', { align: 'center' });
-        
+
         doc.moveDown(0.3);
         doc.text(`Generated on: ${new Date().toLocaleString()}`, { align: 'center' });
 
         doc.moveDown(0.5);
         doc.fillColor('#4f46e5')
-           .fontSize(10)
-           .font('Helvetica-Bold')
-           .text('NexaCivic - Making Cities Better, Together', { align: 'center' });
+            .fontSize(10)
+            .font('Helvetica-Bold')
+            .text('NexaCivic - Making Cities Better, Together', { align: 'center' });
 
         doc.end();
     } catch (err) {
@@ -1698,7 +1701,7 @@ app.get("/api/departments/scores", verifyToken, verifyAdmin, async (req, res) =>
         const results = stats.map(dept => {
             const resolvedDocs = dept.resolvedComplaints || [];
             let totalTimeMs = 0;
-            
+
             resolvedDocs.forEach(doc => {
                 const endTime = doc.resolvedAt || doc.updatedAt;
                 const startTime = doc.createdAt;
@@ -1708,8 +1711,8 @@ app.get("/api/departments/scores", verifyToken, verifyAdmin, async (req, res) =>
             });
 
             // Convert to Days for the score calculation (2.5 days format)
-            const avgTimeDays = resolvedDocs.length > 0 
-                ? (totalTimeMs / resolvedDocs.length) / (1000 * 60 * 60 * 24) 
+            const avgTimeDays = resolvedDocs.length > 0
+                ? (totalTimeMs / resolvedDocs.length) / (1000 * 60 * 60 * 24)
                 : 0;
 
             // SCORE FORMULA (MANDATORY):
@@ -1932,16 +1935,16 @@ app.post("/api/complaints/:id/feedback", verifyToken, async (req, res) => {
         console.log("📝 Feedback submission request received");
         console.log("📝 User ID from token:", req.user.id);
         console.log("📝 Complaint ID:", req.params.id);
-        
+
         const { rating, feedback } = req.body;
         console.log("📝 Rating:", rating, "Feedback:", feedback);
-        
+
         const complaint = await Complaint.findById(req.params.id);
         if (!complaint) {
             console.log("❌ Complaint not found");
             return res.status(404).json({ error: "Complaint not found" });
         }
-        
+
         console.log("📝 Complaint status:", complaint.status);
         console.log("📝 Complaint userId:", complaint.userId);
         console.log("📝 Feedback already given:", complaint.feedbackGiven);
@@ -1951,19 +1954,19 @@ app.post("/api/complaints/:id/feedback", verifyToken, async (req, res) => {
             console.log("❌ Complaint not resolved yet");
             return res.status(400).json({ error: "Feedback can only be submitted for resolved complaints." });
         }
-        
+
         // Allow feedback if userId is null (legacy complaints) or matches the user
         const isOwner = !complaint.userId || complaint.userId.toString() === String(req.user.id);
         if (!isOwner) {
             console.log("❌ User does not own this complaint");
             return res.status(403).json({ error: "Access Denied. You do not own this complaint." });
         }
-        
+
         if (complaint.feedbackGiven) {
             console.log("❌ Feedback already submitted");
             return res.status(400).json({ error: "Feedback has already been submitted for this ticket." });
         }
-        
+
         if (!rating || rating < 1 || rating > 5) {
             console.log("❌ Invalid rating:", rating);
             return res.status(400).json({ error: "Rating must be a valid number between 1 and 5." });
@@ -1976,7 +1979,7 @@ app.post("/api/complaints/:id/feedback", verifyToken, async (req, res) => {
 
         await complaint.save();
         console.log("✅ Feedback saved successfully");
-        
+
         // Award points for feedback
         try {
             const user = await User.findById(req.user.id);
@@ -1991,12 +1994,12 @@ app.post("/api/complaints/:id/feedback", verifyToken, async (req, res) => {
         } catch (pointsErr) {
             console.error("Failed to award points for feedback:", pointsErr);
         }
-        
+
         const populatedComplaint = await Complaint.findById(complaint._id).populate('assignedTo', 'name');
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             message: "Feedback submitted successfully",
-            complaint: populatedComplaint 
+            complaint: populatedComplaint
         });
     } catch (err) {
         console.error("❌ Error submitting feedback:", err);
@@ -2202,15 +2205,15 @@ app.put("/api/user/update", verifyToken, async (req, res) => {
         }
 
         await user.save();
-        res.json({ 
-            message: "Profile updated successfully!", 
-            user: { 
-                name: user.name, 
-                email: user.email, 
-                mobile: user.mobile, 
+        res.json({
+            message: "Profile updated successfully!",
+            user: {
+                name: user.name,
+                email: user.email,
+                mobile: user.mobile,
                 id: user._id,
                 role: user.role
-            } 
+            }
         });
     } catch (err) {
         console.error(err);
