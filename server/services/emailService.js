@@ -13,11 +13,16 @@ const getLocale = (lang) => locales[lang] || locales.en;
 
 // 1. Create the transporter using your .env credentials
 const transporter = nodemailer.createTransport({
-    service: 'gmail', // Change to 'mailtrap' or another service if not using Gmail
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false, // Change to 'mailtrap' or another service if not using Gmail
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
-    }
+    },
+    connectionTimeout: 30000,
+    greetingTimeout: 30000,
+    socketTimeout: 30000,
 });
 
 // Reusable function to send the actual email
