@@ -257,11 +257,11 @@ mongoose.connect(process.env.MONGO_URI)
 
             // Seed Staff Users
             const staffList = [
-                { name: 'Road Inspector', email: 'staff1@nexacivic.com' },
-                { name: 'Sanitation Department', email: 'staff2@nexacivic.com' },
-                { name: 'Water Department', email: 'staff3@nexacivic.com' },
-                { name: 'Electricity Board', email: 'staff4@nexacivic.com' },
-                { name: 'General Maintenance', email: 'staff5@nexacivic.com' }
+                { name: 'Road Inspector', email: 'staff1@nexacivic.com', mobile: '8888888881' },
+                { name: 'Sanitation Department', email: 'staff2@nexacivic.com', mobile: '8888888882' },
+                { name: 'Water Department', email: 'staff3@nexacivic.com', mobile: '8888888883' },
+                { name: 'Electricity Board', email: 'staff4@nexacivic.com', mobile: '8888888884' },
+                { name: 'General Maintenance', email: 'staff5@nexacivic.com', mobile: '8888888885' }
             ];
 
             for (const staff of staffList) {
@@ -272,6 +272,7 @@ mongoose.connect(process.env.MONGO_URI)
                     await User.create({
                         name: staff.name,
                         email: staff.email,
+                        mobile: staff.mobile,
                         password: hashedPassword,
                         role: 'staff'
                     });
