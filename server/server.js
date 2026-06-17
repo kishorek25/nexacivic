@@ -248,6 +248,7 @@ mongoose.connect(process.env.MONGO_URI)
                 await User.create({
                     name: 'System Admin',
                     email: 'admin@nexacivic.com',
+                    mobile: '9999999999',
                     password: hashedPassword,
                     role: 'admin'
                 });
