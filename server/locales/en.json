@@ -1,0 +1,22 @@
+{
+  "welcome_subject": "Welcome to NexaCivic!",
+  "welcome_title": "Welcome to NexaCivic, {name}!",
+  "welcome_p1": "You have successfully registered for the City Complaint Management System.",
+  "welcome_p2": "We are glad to have you on board! You can now log in to submit and track your civic complaints.",
+  "reg_success": "User registered successfully",
+  "complaint_received_subject": "Your Complaint Has Been Received - NexaCivic",
+  "complaint_received_title": "Complaint Received!",
+  "complaint_received_p1": "Thank you for submitting a complaint. Here are the details you provided:",
+  "complaint_received_p2": "We will notify you once an admin updates the status of your complaint.",
+  "complaint_resolved_subject": "Your Complaint Has Been Resolved 🎉 - NexaCivic",
+  "complaint_resolved_title": "Complaint Resolved!",
+  "complaint_resolved_p1": "Great news! The admin has marked your complaint as <strong>Resolved</strong>.",
+  "complaint_resolved_p2": "Thank you for using NexaCivic to help improve our city!",
+  "reg_error": "All fields required",
+  "user_exists": "User already exists",
+  "server_error": "Server error",
+  "invalid_creds": "Invalid credentials",
+  "login_success": "Logged in successfully",
+  "spam_detected": "Spam detected ❌",
+  "complaint_success": "Complaint saved successfully"
+}

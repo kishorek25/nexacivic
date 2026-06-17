@@ -1,0 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --text: #e2e8f0;
+  --text-h: #ffffff;
+  --text-muted: #94a3b8;
+  
+  --bg-dark: #000000;
+  --bg-surface: #0a0a0a;
+  
+  --glass-bg: rgba(20, 20, 20, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  
+  --primary: #3b82f6;
+  --primary-glow: rgba(59, 130, 246, 0.5);
+  --accent: #06b6d4;
+  --accent-glow: rgba(6, 182, 212, 0.5);
+  
+  --danger: #ef4444;
+  --success: #10b981;
+  --warning: #f59e0b;
+
+  --sans: 'Inter', system-ui, -apple-system, sans-serif;
+  
+  --shadow-neon: 0 0 15px rgba(59, 130, 246, 0.3);
+  --shadow-neon-hover: 0 0 25px rgba(6, 182, 212, 0.6);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  
+  --gradient-neon: linear-gradient(135deg, var(--primary), var(--accent));
+}
+
+[data-theme='light'] {
+  --text: #334155;
+  --text-h: #0f172a;
+  --text-muted: #64748b;
+  
+  --bg-dark: #f8fafc;
+  --bg-surface: #ffffff;
+  
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.1);
+  
+  --primary: #2563eb;
+  --primary-glow: rgba(37, 99, 235, 0.3);
+  --accent: #06b6d4;
+  --accent-glow: rgba(6, 182, 212, 0.3);
+  
+  --shadow-neon: 0 0 15px rgba(37, 99, 235, 0.2);
+  --shadow-neon-hover: 0 0 25px rgba(6, 182, 212, 0.4);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--sans);
+  background-color: var(--bg-dark);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Dynamic background pattern */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: 
+    radial-gradient(circle at 15% 50%, rgba(37, 99, 235, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 85% 30%, rgba(6, 182, 212, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
